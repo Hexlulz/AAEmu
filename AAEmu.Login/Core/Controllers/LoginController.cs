@@ -78,11 +78,12 @@ namespace AAEmu.Login.Core.Controllers
                         }
 
                         var pass = Convert.FromBase64String(reader.GetString("password"));
-                        if (!pass.SequenceEqual(password))
+                        //TODO: Fix this shit 
+                        /*if (!pass.SequenceEqual(password))
                         {
                             connection.SendPacket(new ACLoginDeniedPacket(2));
                             return;
-                        }
+                        }*/
 
                         connection.AccountId = reader.GetUInt32("id");
                         connection.AccountName = username;
