@@ -9,6 +9,7 @@ using AAEmu.Game.Models.Game.Char;
 using AAEmu.Game.Models.Game.Error;
 using AAEmu.Game.Models.Game.Expeditions;
 using AAEmu.Game.Models.Game.Items;
+using AAEmu.Game.Models.Game.Items.Procs;
 using AAEmu.Game.Models.Game.Skills;
 using AAEmu.Game.Models.Game.Units.Route;
 using AAEmu.Game.Models.Tasks;
@@ -88,10 +89,6 @@ namespace AAEmu.Game.Models.Game.Units
             {
                 DoDie(attacker);
                 //StopRegen();
-            }
-            else
-            {
-                //StartRegen();
             }
             BroadcastPacket(new SCUnitPointsPacket(ObjId, Hp, Hp > 0 ? Mp : 0), true);
         }
