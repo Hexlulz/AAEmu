@@ -48,13 +48,20 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
         }
         public bool GetConditionCacheResult(PlotCondition condition)
         {
-            switch (condition.Kind)
+            try
             {
-                case PlotConditionType.BuffTag:
-                    return ConditionsCache.BuffTagCache[condition.Param1];
+                switch (condition.Kind)
+                {
+                    case PlotConditionType.BuffTag:
+                        return ConditionsCache.BuffTagCache[condition.Param1];
+                }
+            } 
+            catch
+            {
+                NLog.LogManager.GetCurrentClassLogger().Error($"Id Doesnt Exist");
             }
 
-            
+            NLog.LogManager.GetCurrentClassLogger().Error($"Unsupported Condition Cache Kind - Returned False by Default");
             return false;
         }
         public void UpdateConditionCache(PlotCondition condition, bool result)
@@ -62,6 +69,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             switch (condition.Kind)
             {
                 case PlotConditionType.BuffTag:
+                    NLog.LogManager.GetCurrentClassLogger().Error($"Cached Bufftag[{condition.Param1}] Conditon {result}");
                     ConditionsCache.BuffTagCache.TryAdd(condition.Param1, result);
                 break;
             }

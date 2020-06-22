@@ -174,6 +174,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                 instance.Caster.BroadcastPacket(new SCPlotEventPacket(skill.TlId, Id, skill.Template.Id, casterPlotObj, targetPlotObj, unkId, 0, instance.Flag), true);
             }
 
+            List<Task> tasks = new List<Task>();
             foreach (var nextEvent in NextEvents)
             {
                 if ((pass && !nextEvent.Fail) || (!pass && nextEvent.Fail))
@@ -183,7 +184,18 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                     int delay = animTime + projectileTime + nextEvent.Delay;
 
                     var task = nextEvent.Event.PlayEvent(instance, nextEvent, delay);
+                    tasks.Add(task);
                 }
+            }
+            try
+            {
+                bool test = Task.WaitAll(tasks.ToArray(), 5000);
+                if (!test)
+                    NLog.LogManager.GetCurrentClassLogger().Error("PlotTask took too long!");
+            }
+            catch
+            {
+                NLog.LogManager.GetCurrentClassLogger().Error("PlotTask crashed!");
             }
         }
 
