@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using AAEmu.Game.Models.Game.Units;
@@ -7,7 +8,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
 {
     public class PlotInstance
     {
-        public Dictionary<uint, int> Tickets { get; set; }
+        public ConcurrentDictionary<uint, int> Tickets { get; set; }
         public PlotConditionsCache ConditionsCache { get; set; }
         public List<int> Variables { get; set; }
         public byte CombatDiceRoll { get; set; }
@@ -22,10 +23,11 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
 
         public byte Flag { get; set; }
         public readonly object ConditionLock = new object();
+        public readonly object TicketLock = new object();
 
         public PlotInstance(Unit caster, SkillCaster casterCaster, BaseUnit target, SkillCastTarget targetCaster, SkillObject skillObject, Skill skill)
         {
-            Tickets = new Dictionary<uint, int>();
+            Tickets = new ConcurrentDictionary<uint, int>();
             ConditionsCache = new PlotConditionsCache();
             Variables = new List<int>();
 

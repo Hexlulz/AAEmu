@@ -230,6 +230,7 @@ namespace AAEmu.Game.Models.Game.Skills
                 var token = new CancellationTokenSource();
                 CancellationToken ct = token.Token;
                 var test = Template.Plot.Execute(caster, casterCaster, target, targetCaster, skillObject, this, ct);
+                return;
                 /*var eventTemplate = Template.Plot.EventTemplate;
                 var step = new PlotStep();
                 step.Event = eventTemplate;

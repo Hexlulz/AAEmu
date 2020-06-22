@@ -19,7 +19,8 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             caster.BroadcastPacket(new SCSkillStartedPacket(skill.Id, skill.TlId, casterCaster, targetCaster, skill, skillObject), true);
             NLog.LogManager.GetCurrentClassLogger().Error($"Plot: {Id} Executing.");
             await EventTemplate.PlayEvent(instance, null);
-            //caster.BroadcastPacket(new SCSkillEndedPacket(skill.TlId), true);
+            caster.BroadcastPacket(new SCSkillEndedPacket(skill.TlId), true);
+            caster.BroadcastPacket(new SCPlotEndedPacket(skill.TlId), true);
             NLog.LogManager.GetCurrentClassLogger().Error($"Plot: {Id} Finished.");
             return true;
         }
