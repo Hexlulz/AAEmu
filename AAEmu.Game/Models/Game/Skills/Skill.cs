@@ -229,29 +229,11 @@ namespace AAEmu.Game.Models.Game.Skills
             {
                 var token = new CancellationTokenSource();
                 CancellationToken ct = token.Token;
-                var test = Template.Plot.Execute(caster, casterCaster, target, targetCaster, skillObject, this, ct);
+                //TaskManager.Instance.
+                _log.Error("Start Plot[Wrap]");
+                Task.Run(() => Template.Plot.Execute(caster, casterCaster, target, targetCaster, skillObject, this, ct));
+                _log.Error("Return Plot[Wrap]");
                 return;
-                /*var eventTemplate = Template.Plot.EventTemplate;
-                var step = new PlotStep();
-                step.Event = eventTemplate;
-                step.Flag = 2;
-
-                if (!eventTemplate.СheckСonditions(caster, casterCaster, target, targetCaster, skillObject))
-                {
-                    step.Flag = 0;
-                }
-
-                var res = true;
-                if (step.Flag != 0)
-                {
-                    var callCounter = new Dictionary<uint, int>();
-                    callCounter.Add(step.Event.Id, 1);
-                    foreach (var evnt in eventTemplate.NextEvents)
-                    {
-                        res = res && BuildPlot(caster, casterCaster, target, targetCaster, skillObject, evnt, step, callCounter);
-                    }
-                }
-                ParsePlot(caster, casterCaster, target, targetCaster, skillObject, step); */
             }
             
             if (Template.CastingTime > 0)
@@ -273,97 +255,6 @@ namespace AAEmu.Game.Models.Game.Skills
             else
             {
                 Cast(caster, casterCaster, target, targetCaster, skillObject);
-            }
-        }
-
-        public bool BuildPlot(Unit caster, SkillCaster casterCaster, BaseUnit target, SkillCastTarget targetCaster, SkillObject skillObject, PlotNextEvent nextEvent, PlotStep baseStep, Dictionary<uint, int> counter)
-        {
-            if (counter.ContainsKey(nextEvent.Event.Id))
-            {
-                var nextCount = counter[nextEvent.Event.Id] + 1;
-                if (nextCount > nextEvent.Event.Tickets 
-                    && nextEvent.Event.Tickets > 1)
-                {
-                    return true;
-                }
-                counter[nextEvent.Event.Id] = nextCount;
-            }
-            else
-            {
-                counter.Add(nextEvent.Event.Id, 1);
-            }
-
-            if (nextEvent.Delay > 0)
-            {
-                baseStep.Delay = nextEvent.Delay;
-                caster.SkillTask = new PlotTask(this, caster, casterCaster, target, targetCaster, skillObject, nextEvent, counter);
-                TaskManager.Instance.Schedule(caster.SkillTask, TimeSpan.FromMilliseconds(nextEvent.Delay));
-                return false;
-            }
-
-            if (nextEvent.Speed > 0)
-            {
-                baseStep.Speed = nextEvent.Speed;
-                caster.SkillTask = new PlotTask(this, caster, casterCaster, target, targetCaster, skillObject, nextEvent, counter);
-                var dist = MathUtil.CalculateDistance(caster.Position, target.Position, true);
-                TaskManager.Instance.Schedule(caster.SkillTask, TimeSpan.FromSeconds(dist / nextEvent.Speed));
-                return false;
-            }
-
-            var step = new PlotStep();
-            step.Event = nextEvent.Event;
-            step.Flag = 2;
-            step.Casting = nextEvent.Casting;
-            step.Channeling = nextEvent.Channeling;
-            foreach (var condition in nextEvent.Event.Conditions)
-            {
-                if (condition.Condition.Check(caster, casterCaster, target, targetCaster, skillObject))
-                {
-                    continue;
-                }
-                step.Flag = 0;
-                break;
-            }
-
-            baseStep.Steps.AddLast(step);
-            if (step.Flag == 0)
-            {
-                return true;
-            }
-            var res = true;
-            foreach (var e in nextEvent.Event.NextEvents)
-            {
-                res = res && BuildPlot(caster, casterCaster, target, targetCaster, skillObject, e, step, counter);
-            }
-            return res;
-        }
-
-        public void ParsePlot(Unit caster, SkillCaster casterCaster, BaseUnit target, SkillCastTarget targetCaster, SkillObject skillObject, PlotStep step)
-        {
-            _log.Warn("Plot: StepId {0}, Flag {1}, Delay {2}", step.Event.Id, step.Flag, step.Delay);
-
-            if (step.Flag != 0)
-            {
-                foreach (var eff in step.Event.Effects)
-                {
-                    var template = SkillManager.Instance.GetEffectTemplate(eff.ActualId, eff.ActualType);
-                    if (template is BuffEffect)
-                    {
-                        step.Flag = 6;
-                    }
-                    template.Apply(caster, casterCaster, target, targetCaster, new CastPlot(step.Event.PlotId, TlId, step.Event.Id, Template.Id), this, skillObject, DateTime.Now);
-                }
-            }
-
-            var time = (ushort)(step.Flag != 0 ? step.Delay / 10 + 1 : 0); // TODO fixed the CSStopCastingPacket spam when using the "Chain Lightning" skill
-            var unkId = step.Casting || step.Channeling ? caster.ObjId : 0;
-            var casterPlotObj = new PlotObject(caster);
-            var targetPlotObj = new PlotObject(target);
-            caster.BroadcastPacket(new SCPlotEventPacket(TlId, step.Event.Id, Template.Id, casterPlotObj, targetPlotObj, unkId, time, step.Flag), true);
-
-            foreach (var st in step.Steps)
-            {
-                ParsePlot(caster, casterCaster, target, targetCaster, skillObject, st);
             }
         }
 

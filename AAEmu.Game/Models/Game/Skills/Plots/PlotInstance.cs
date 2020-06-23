@@ -2,12 +2,17 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using AAEmu.Game.Models.Game.Units;
 
 namespace AAEmu.Game.Models.Game.Skills.Plots
 {
     public class PlotInstance
     {
+        public ConcurrentBag<Task> Tasks;
+        public CancellationToken Ct;
+
         public ConcurrentDictionary<uint, int> Tickets { get; set; }
         public PlotConditionsCache ConditionsCache { get; set; }
         public List<int> Variables { get; set; }
@@ -21,12 +26,14 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
         public SkillCastTarget TargetCaster { get; set; }
         public SkillObject SkillObject { get; set; }
 
-        public byte Flag { get; set; }
         public readonly object ConditionLock = new object();
         public readonly object TicketLock = new object();
+        public bool PlotEnded = false;
 
-        public PlotInstance(Unit caster, SkillCaster casterCaster, BaseUnit target, SkillCastTarget targetCaster, SkillObject skillObject, Skill skill)
+        public PlotInstance(Unit caster, SkillCaster casterCaster, BaseUnit target, SkillCastTarget targetCaster, SkillObject skillObject, Skill skill, CancellationToken ct)
         {
+            Tasks = new ConcurrentBag<Task>();
+            Ct = ct;
             Tickets = new ConcurrentDictionary<uint, int>();
             ConditionsCache = new PlotConditionsCache();
             Variables = new List<int>();

@@ -13,16 +13,23 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
 
         public PlotEventTemplate EventTemplate { get; set; }
 
-        public async Task<bool> Execute(Unit caster, SkillCaster casterCaster, BaseUnit target, SkillCastTarget targetCaster, SkillObject skillObject, Skill skill ,CancellationToken token)
+        public async Task Execute(Unit caster, SkillCaster casterCaster, BaseUnit target, SkillCastTarget targetCaster, SkillObject skillObject, Skill skill ,CancellationToken token)
         {
-            PlotInstance instance = new PlotInstance(caster, casterCaster, target, targetCaster, skillObject, skill);
-            caster.BroadcastPacket(new SCSkillStartedPacket(skill.Id, skill.TlId, casterCaster, targetCaster, skill, skillObject), true);
+            PlotInstance instance = new PlotInstance(caster, casterCaster, target, targetCaster, skillObject, skill, token);
+            //caster.BroadcastPacket(new SCSkillStartedPacket(skill.Id, skill.TlId, casterCaster, targetCaster, skill, skillObject), true);
             NLog.LogManager.GetCurrentClassLogger().Error($"Plot: {Id} Executing.");
-            await EventTemplate.PlayEvent(instance, null);
-            caster.BroadcastPacket(new SCSkillEndedPacket(skill.TlId), true);
-            caster.BroadcastPacket(new SCPlotEndedPacket(skill.TlId), true);
+            await Task.Run((() => EventTemplate.PlayEvent(instance, null)));
             NLog.LogManager.GetCurrentClassLogger().Error($"Plot: {Id} Finished.");
-            return true;
+
+            if (!instance.PlotEnded)
+            {
+                caster.BroadcastPacket(new SCPlotEndedPacket(instance.ActiveSkill.TlId), true);
+            }
+            if(token.IsCancellationRequested)
+            {
+                caster.BroadcastPacket(new SCSkillEndedPacket(skill.TlId), true);
+
+            }
         }
     }
 }

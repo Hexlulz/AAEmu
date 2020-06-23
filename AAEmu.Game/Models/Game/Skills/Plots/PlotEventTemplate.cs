@@ -86,7 +86,11 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                 try
                 {
                     if (!GetConditionResult(instance, condition.Condition))
+                    {
+                        if (condition.NotifyFailure)
+                            instance.Caster.BroadcastPacket(new SCSkillStoppedPacket(instance.Caster.ObjId, instance.ActiveSkill.Id), true);
                         return false;
+                    }
                 }
                 catch { NLog.LogManager.GetCurrentClassLogger().Error("CheckConditions Failed."); }
             }
@@ -134,7 +138,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             return 0;
         }
 
-        private bool ApplyEffects(PlotInstance instance)
+        private bool ApplyEffects(PlotInstance instance, ref byte flag)
         {
             var appliedEffects = false;
             var skill = instance.ActiveSkill;
@@ -144,7 +148,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                 var template = SkillManager.Instance.GetEffectTemplate(eff.ActualId, eff.ActualType);
                 if (template is BuffEffect)
                 {
-                    instance.Flag = 6; //idk what this does?
+                    flag = 6; //idk what this does?
                 }     
 
                 template.Apply(
@@ -161,22 +165,22 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
         {
             NLog.LogManager.GetCurrentClassLogger().Info($"PlotEvent: {Id}");
 
-            instance.Flag = 2;
+            byte flag = 2;
+
+            if (instance.Ct.IsCancellationRequested)
+                return;
 
             //Do tickets
-            lock (instance.TicketLock)
-            {
-                if (instance.Tickets.ContainsKey(Id))
-                    instance.Tickets[Id]++;
-                else
-                    instance.Tickets.TryAdd(Id, 1);
+            if (instance.Tickets.ContainsKey(Id))
+                instance.Tickets[Id]++;
+            else
+                instance.Tickets.TryAdd(Id, 1);
 
-                //Check if we hit max tickets
-                if (instance.Tickets[Id] > Tickets && Tickets > 1)
-                {
-                    //Max Recursion. Leave Scope
-                    return;
-                }
+            //Check if we hit max tickets
+            if (instance.Tickets[Id] > Tickets && Tickets > 1)
+            {
+                //Max Recursion. Leave Scope
+                return;
             }
 
             // Check Conditions
@@ -184,28 +188,25 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             
             bool pass = СheckСonditions(instance);
             if (pass)
-                appliedEffects = ApplyEffects(instance);
+                appliedEffects = ApplyEffects(instance,ref flag);
             else
-                instance.Flag = 0;
+                flag = 0;
 
-            //This is pasted from old code. not sure what to do here
-            if (pass && appliedEffects)
+            if (cNext?.Casting ?? false)
             {
-                try
-                {
-                    var skill = instance.ActiveSkill;
-                    var unkId = ((cNext?.Casting ?? false) || (cNext?.Channeling ?? false)) ? instance.Caster.ObjId : 0;
-                    var casterPlotObj = new PlotObject(instance.Caster);
-                    var targetPlotObj = new PlotObject(instance.Target);
-                    instance.Caster.BroadcastPacket(new SCPlotEventPacket(skill.TlId, Id, skill.Template.Id, casterPlotObj, targetPlotObj, unkId, 0, instance.Flag), true);
-                } catch { NLog.LogManager.GetCurrentClassLogger().Error("Exception on Event Packet."); }
+                instance.Caster.BroadcastPacket(new SCPlotEndedPacket(instance.ActiveSkill.TlId), true);
+                instance.PlotEnded = true;
             }
 
             List<Task> tasks = new List<Task>();
+            int castTime = 0;
             foreach (var nextEvent in NextEvents)
             {
                 if ((pass && !nextEvent.Fail) || (!pass && nextEvent.Fail))
-                { 
+                {
+                    if (nextEvent.Casting)
+                        castTime = (castTime > nextEvent.Delay) ? castTime : (nextEvent.Delay/10);
+
                     int animTime = GetAnimDelay(nextEvent);
                     int projectileTime = GetProjectileDelay(nextEvent, instance.Caster, instance.Target);
                     int delay = animTime + projectileTime + nextEvent.Delay;
@@ -214,16 +215,19 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                     tasks.Add(task);
                 }
             }
-            try
+            if (pass && appliedEffects)
             {
-                bool test = Task.WaitAll(tasks.ToArray(), 5000);
-                if (!test)
-                    NLog.LogManager.GetCurrentClassLogger().Error("PlotTask took too long!");
+                try
+                {
+                    var skill = instance.ActiveSkill;
+                    var unkId = ((cNext?.Casting ?? false) || (cNext?.Channeling ?? false)) ? instance.Caster.ObjId : 0;
+                    var casterPlotObj = new PlotObject(instance.Caster);
+                    var targetPlotObj = new PlotObject(instance.Target);
+                    instance.Caster.BroadcastPacket(new SCPlotEventPacket(skill.TlId, Id, skill.Template.Id, casterPlotObj, targetPlotObj, unkId, (ushort)castTime, flag), true);
+                }
+                catch { NLog.LogManager.GetCurrentClassLogger().Error("Exception on Event Packet."); }
             }
-            catch
-            {
-                NLog.LogManager.GetCurrentClassLogger().Error("PlotTask crashed!");
-            }
+            Task.WaitAll(tasks.ToArray());
         }
 
         public async Task PlayEvent(PlotInstance instance, PlotNextEvent cNext ,int delay)
