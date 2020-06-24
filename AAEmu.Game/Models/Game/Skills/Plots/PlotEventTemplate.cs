@@ -144,12 +144,12 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             var skill = instance.ActiveSkill;
             foreach (var eff in Effects)
             {
-                appliedEffects = true;
                 var template = SkillManager.Instance.GetEffectTemplate(eff.ActualId, eff.ActualType);
+
                 if (template is BuffEffect)
-                {
-                    flag = 6; //idk what this does?
-                }     
+                    flag = 6; //idk what this does?  
+                if (template is SpecialEffect)
+                    appliedEffects = true;
 
                 template.Apply(
                     instance.Caster,
@@ -219,6 +219,8 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             {
                 try
                 {
+                    if (tasks.Count == 0)
+                        flag = 0;
                     var skill = instance.ActiveSkill;
                     var unkId = ((cNext?.Casting ?? false) || (cNext?.Channeling ?? false)) ? instance.Caster.ObjId : 0;
                     var casterPlotObj = new PlotObject(instance.Caster);
