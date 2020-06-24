@@ -137,6 +137,19 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             }catch { NLog.LogManager.GetCurrentClassLogger().Error("GetAnimDelay Failed."); }
             return 0;
         }
+        private bool HasSpecialEffects()
+        {
+            bool has = false;
+            foreach (var eff in Effects)
+            {
+                var template = SkillManager.Instance.GetEffectTemplate(eff.ActualId, eff.ActualType);
+                if (template is SpecialEffect)
+                {
+                    has = true;
+                }
+            }
+            return has;
+        }
 
         private bool ApplyEffects(PlotInstance instance, ref byte flag)
         {
@@ -163,8 +176,6 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
 
         public async Task PlayEvent(PlotInstance instance, PlotNextEvent cNext)
         {
-            NLog.LogManager.GetCurrentClassLogger().Info($"PlotEvent: {Id}");
-
             byte flag = 2;
 
             if (instance.Ct.IsCancellationRequested)
@@ -192,42 +203,37 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             else
                 flag = 0;
 
-            if (cNext?.Casting ?? false)
-            {
-                instance.Caster.BroadcastPacket(new SCPlotEndedPacket(instance.ActiveSkill.TlId), true);
-                instance.PlotEnded = true;
-            }
-
-            List<Task> tasks = new List<Task>();
             int castTime = 0;
             foreach (var nextEvent in NextEvents)
             {
-                if ((pass && !nextEvent.Fail) || (!pass && nextEvent.Fail))
-                {
-                    if (nextEvent.Casting)
-                        castTime = (castTime > nextEvent.Delay) ? castTime : (nextEvent.Delay/10);
+                if (nextEvent.Casting && (pass ^ nextEvent.Fail))
+                    castTime = (castTime > nextEvent.Delay) ? castTime : (nextEvent.Delay / 10);
+            }
+            if (HasSpecialEffects())
+            {
+                /*if (NextEvents.Count == 0)
+                    flag = 0;*/
+                var skill = instance.ActiveSkill;
+                var unkId = ((cNext?.Casting ?? false) || (cNext?.Channeling ?? false)) ? instance.Caster.ObjId : 0;
+                var casterPlotObj = new PlotObject(instance.Caster);
+                var targetPlotObj = new PlotObject(instance.Target);
+                instance.Caster.BroadcastPacket(new SCPlotEventPacket(skill.TlId, Id, skill.Template.Id, casterPlotObj, targetPlotObj, unkId, (ushort)castTime, flag), true);
+                NLog.LogManager.GetCurrentClassLogger()
+                    .Error($"Sent Event Packet - Id:{Id} Src:{casterPlotObj.UnitId} Trgt:{targetPlotObj.UnitId}  tl:{skill.TlId} flag:{flag}");
+            }
 
+            List<Task> tasks = new List<Task>();
+            foreach (var nextEvent in NextEvents)
+            {
+                if (pass ^ nextEvent.Fail)
+                {
                     int animTime = GetAnimDelay(nextEvent);
                     int projectileTime = GetProjectileDelay(nextEvent, instance.Caster, instance.Target);
                     int delay = animTime + projectileTime + nextEvent.Delay;
 
-                    var task = nextEvent.Event.PlayEvent(instance, nextEvent, delay);
+                    var task = Task.Run(() => nextEvent.Event.PlayEvent(instance, nextEvent, delay));
                     tasks.Add(task);
                 }
-            }
-            if (pass && appliedEffects)
-            {
-                try
-                {
-                    if (tasks.Count == 0)
-                        flag = 0;
-                    var skill = instance.ActiveSkill;
-                    var unkId = ((cNext?.Casting ?? false) || (cNext?.Channeling ?? false)) ? instance.Caster.ObjId : 0;
-                    var casterPlotObj = new PlotObject(instance.Caster);
-                    var targetPlotObj = new PlotObject(instance.Target);
-                    instance.Caster.BroadcastPacket(new SCPlotEventPacket(skill.TlId, Id, skill.Template.Id, casterPlotObj, targetPlotObj, unkId, (ushort)castTime, flag), true);
-                }
-                catch { NLog.LogManager.GetCurrentClassLogger().Error("Exception on Event Packet."); }
             }
             Task.WaitAll(tasks.ToArray());
         }

@@ -78,7 +78,6 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             switch (condition.Kind)
             {
                 case PlotConditionType.BuffTag:
-                    NLog.LogManager.GetCurrentClassLogger().Error($"Cached Bufftag[{condition.Param1}] Conditon {result}");
                     ConditionsCache.BuffTagCache.TryAdd(condition.Param1, result);
                 break;
             }
