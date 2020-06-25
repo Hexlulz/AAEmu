@@ -88,46 +88,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
 
             return true;
         }
-
-        private int GetProjectileDelay(PlotNextEvent nextEvent, BaseUnit caster, BaseUnit target)
-        {
-            try
-            {
-                if (nextEvent == null)
-                    return 0;
-                if (nextEvent.Speed > 0)
-                {
-                    var dist = MathUtil.CalculateDistance(caster.Position, target.Position, true);
-                    //We want damage to be applied when the projectile hits target.
-                    return (int)Math.Round((dist / nextEvent.Speed) * 1000.0f);
-                }
-            } catch { NLog.LogManager.GetCurrentClassLogger().Error("GetProjectileDelay Failed."); }
-            return 0;
-        }
-
-        private int GetAnimDelay(PlotNextEvent cNext)
-        {
-            try
-            {
-                if (cNext?.AddAnimCsTime ?? false)
-                {
-                    foreach (var effect in Effects)
-                    {
-                        var template = SkillManager.Instance.GetEffectTemplate(effect.ActualId, effect.ActualType);
-                        if (template is SpecialEffect specialEffect)
-                        {
-                            if (specialEffect.SpecialEffectTypeId == SpecialType.Anim)
-                            {
-                                var anim = AnimationManager.Instance.GetAnimation((uint)specialEffect.Value1);
-                                return anim.CombatSyncTime;
-                            }
-                        }
-                    }
-                }
-                return 0;
-            }catch { NLog.LogManager.GetCurrentClassLogger().Error("GetAnimDelay Failed."); }
-            return 0;
-        }
+        
         private bool HasSpecialEffects()
         {
             bool has = false;
@@ -215,14 +176,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             foreach (var nextEvent in NextEvents)
             {
                 if (pass ^ nextEvent.Fail)
-                {
-                    int animTime = GetAnimDelay(nextEvent);
-                    int projectileTime = GetProjectileDelay(nextEvent, instance.Caster, instance.Target);
-                    int delay = animTime + projectileTime + nextEvent.Delay;
-
-                    var task = nextEvent.Event.PlayEvent(instance, nextEvent, delay);
-                    tasks.Add(task);
-                }
+                    tasks.Add(nextEvent.PlayNextEvent(instance, instance.Caster, instance.Target, Effects));
             }
             await Task.WhenAll(tasks.ToArray());
         }
