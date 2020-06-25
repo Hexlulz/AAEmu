@@ -17,7 +17,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
         public int Param2 { get; set; }
         public int Param3 { get; set; }
 
-        public bool Check(Unit caster, SkillCaster casterCaster, BaseUnit target, SkillCastTarget targetCaster, SkillObject skillObject)
+        public bool Check(Unit caster, SkillCaster casterCaster, BaseUnit target, SkillCastTarget targetCaster, SkillObject skillObject, PlotEventCondition eventCondition)
         {
             var res = true;
             switch (Kind)
@@ -32,8 +32,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                     res = ConditionDirection(caster, casterCaster, target, targetCaster, skillObject, Param1, Param2, Param3);
                     break;
                 case PlotConditionType.BuffTag:
-                    res = ConditionBuffTag(caster, casterCaster, target, targetCaster, skillObject, Param1, Param2,
-                        Param3);
+                    res = ConditionBuffTag(caster, casterCaster, target, targetCaster, skillObject, Param1, Param2,Param3, eventCondition);
                     break;
                 case PlotConditionType.WeaponEquipStatus:
                     res = ConditionWeaponEquipStatus(caster, casterCaster, target, targetCaster, skillObject, Param1, Param2, Param3); 
@@ -109,8 +108,12 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
         }
 
         private static bool ConditionBuffTag(Unit caster, SkillCaster casterCaster, BaseUnit target,
-            SkillCastTarget targetCaster, SkillObject skillObject, int tagId, int unk2, int unk3)
+            SkillCastTarget targetCaster, SkillObject skillObject, int tagId, int unk2, int unk3, PlotEventCondition eventCondition)
         {
+            if (eventCondition.TargetId == 3)
+                return caster.Effects.CheckBuffs(SkillManager.Instance.GetBuffsByTagId((uint)tagId));
+            else if (eventCondition.TargetId == 4)
+                return target.Effects.CheckBuffs(SkillManager.Instance.GetBuffsByTagId((uint)tagId));
             return target.Effects.CheckBuffs(SkillManager.Instance.GetBuffsByTagId((uint)tagId));
         }
 

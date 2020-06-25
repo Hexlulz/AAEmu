@@ -39,15 +39,15 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             NextEvents = new LinkedList<PlotNextEvent>();
         }
 
-        private bool GetConditionResult(PlotInstance instance,PlotCondition condition)
+        private bool GetConditionResult(PlotInstance instance,PlotEventCondition condition)
         {
             lock (instance.ConditionLock)
             {
-                var not = condition.NotCondition;
+                var not = condition.Condition.NotCondition;
                 //Check if condition was cached
-                if (instance.UseConditionCache(condition))
+                if (instance.UseConditionCache(condition.Condition))
                 {
-                    var cacheResult = instance.GetConditionCacheResult(condition);
+                    var cacheResult = instance.GetConditionCacheResult(condition.Condition);
                     //Apply not condition
                     cacheResult = not ? !cacheResult : cacheResult;
 
@@ -55,15 +55,16 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                 }
 
                 //Check 
-                if (condition.Check(instance.Caster, instance.CasterCaster, instance.Target, instance.TargetCaster, instance.SkillObject))
+                bool result = condition.Condition.Check(instance.Caster, instance.CasterCaster, instance.Target, instance.TargetCaster, instance.SkillObject, condition);
+                if (result)
                 {
                     //We need to undo the not condition to store in cache
-                    instance.UpdateConditionCache(condition, not ? false : true);
+                    instance.UpdateConditionCache(condition.Condition, not ? false : true);
                     return true;
                 }
                 else
                 {
-                    instance.UpdateConditionCache(condition, not ? true : false);
+                    instance.UpdateConditionCache(condition.Condition, not ? true : false);
                     return false;
                 }
             }
@@ -75,7 +76,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             {
                 try
                 {
-                    if (!GetConditionResult(instance, condition.Condition))
+                    if (!GetConditionResult(instance, condition))
                     {
                         if (condition.NotifyFailure)
                             instance.Caster.BroadcastPacket(new SCSkillStoppedPacket(instance.Caster.ObjId, instance.ActiveSkill.Id), true);
