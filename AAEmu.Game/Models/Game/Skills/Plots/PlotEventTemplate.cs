@@ -47,33 +47,23 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                 //Check if condition was cached
                 if (instance.UseConditionCache(condition))
                 {
-                    try
-                    {
-                        var cacheResult = instance.GetConditionCacheResult(condition);
-                        //Apply not condition
-                        cacheResult = not ? !cacheResult : cacheResult;
+                    var cacheResult = instance.GetConditionCacheResult(condition);
+                    //Apply not condition
+                    cacheResult = not ? !cacheResult : cacheResult;
 
-                        return cacheResult;
-                    }
-                    catch { NLog.LogManager.GetCurrentClassLogger().Error("GetCondition Failed."); }
+                    return cacheResult;
                 }
 
                 //Check 
                 if (condition.Check(instance.Caster, instance.CasterCaster, instance.Target, instance.TargetCaster, instance.SkillObject))
                 {
                     //We need to undo the not condition to store in cache
-                    try
-                    {
-                        instance.UpdateConditionCache(condition, not ? false : true);
-                    } catch { NLog.LogManager.GetCurrentClassLogger().Error("UpdateCondition Failed."); }
+                    instance.UpdateConditionCache(condition, not ? false : true);
                     return true;
                 }
                 else
                 {
-                    try
-                    {
-                        instance.UpdateConditionCache(condition, not ? true : false);
-                    } catch { NLog.LogManager.GetCurrentClassLogger().Error("UpdateCondition Failed."); }
+                    instance.UpdateConditionCache(condition, not ? true : false);
                     return false;
                 }
             }
@@ -206,20 +196,18 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             int castTime = 0;
             foreach (var nextEvent in NextEvents)
             {
+                //TODO We need to know if the next event(s) is during a cast
+                // Idk how else to find this information...
                 if (nextEvent.Casting && (pass ^ nextEvent.Fail))
                     castTime = (castTime > nextEvent.Delay) ? castTime : (nextEvent.Delay / 10);
             }
             if (HasSpecialEffects())
             {
-                /*if (NextEvents.Count == 0)
-                    flag = 0;*/
                 var skill = instance.ActiveSkill;
                 var unkId = ((cNext?.Casting ?? false) || (cNext?.Channeling ?? false)) ? instance.Caster.ObjId : 0;
                 var casterPlotObj = new PlotObject(instance.Caster);
                 var targetPlotObj = new PlotObject(instance.Target);
                 instance.Caster.BroadcastPacket(new SCPlotEventPacket(skill.TlId, Id, skill.Template.Id, casterPlotObj, targetPlotObj, unkId, (ushort)castTime, flag), true);
-                NLog.LogManager.GetCurrentClassLogger()
-                    .Error($"Sent Event Packet - Id:{Id} Src:{casterPlotObj.UnitId} Trgt:{targetPlotObj.UnitId}  tl:{skill.TlId} flag:{flag}");
             }
 
             List<Task> tasks = new List<Task>();
@@ -231,31 +219,17 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                     int projectileTime = GetProjectileDelay(nextEvent, instance.Caster, instance.Target);
                     int delay = animTime + projectileTime + nextEvent.Delay;
 
-                    var task = Task.Run(() => nextEvent.Event.PlayEvent(instance, nextEvent, delay));
+                    var task = nextEvent.Event.PlayEvent(instance, nextEvent, delay);
                     tasks.Add(task);
                 }
             }
-            Task.WaitAll(tasks.ToArray());
+            await Task.WhenAll(tasks.ToArray());
         }
 
         public async Task PlayEvent(PlotInstance instance, PlotNextEvent cNext ,int delay)
         {
             await Task.Delay(delay);
             await PlayEvent(instance, cNext);
-        }
-
-        public virtual bool СheckСonditions(Unit caster, SkillCaster casterCaster, BaseUnit target, SkillCastTarget targetCaster, SkillObject skillObject)
-        {
-            var result = true;
-            foreach (var condition in Conditions)
-            {
-                if (condition.Condition.Check(caster, casterCaster, target, targetCaster, skillObject))
-                    continue;
-                result = false;
-                break;
-            }
-
-            return result;
         }
     }
 }

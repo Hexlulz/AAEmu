@@ -22,9 +22,9 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                 //caster.BroadcastPacket(new SCSkillStartedPacket(skill.Id, skill.TlId, casterCaster, targetCaster, skill, skillObject), true);
                 //caster.BroadcastPacket(new SCSkillFiredPacket(skill.Id, skill.TlId, casterCaster, targetCaster, skill, skillObject), true);
             }
-            NLog.LogManager.GetCurrentClassLogger().Error($"Plot: {Id} tl: {skill.TlId} Executing.");
+            NLog.LogManager.GetCurrentClassLogger().Debug($"Plot: {Id} tl: {skill.TlId} Executing.");
             await Task.Run((() => EventTemplate.PlayEvent(instance, null)));
-            NLog.LogManager.GetCurrentClassLogger().Error($"Plot: {Id} tl: {skill.TlId} Finished.");
+            NLog.LogManager.GetCurrentClassLogger().Debug($"Plot: {Id} tl: {skill.TlId} Finished.");
             caster.BroadcastPacket(new SCPlotEndedPacket(instance.ActiveSkill.TlId), true);
         }
     }
