@@ -110,6 +110,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
         private static bool ConditionBuffTag(Unit caster, SkillCaster casterCaster, BaseUnit target,
             SkillCastTarget targetCaster, SkillObject skillObject, int tagId, int unk2, int unk3, PlotEventCondition eventCondition)
         {
+            //Todo create enum for SrcId and TargetId
             if (eventCondition.TargetId == 3)
                 return caster.Effects.CheckBuffs(SkillManager.Instance.GetBuffsByTagId((uint)tagId));
             else if (eventCondition.TargetId == 4)
@@ -121,9 +122,9 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             SkillCastTarget targetCaster, SkillObject skillObject, int weaponEquipStatus, int unk2, int unk3)
         {
             // Weapon equip status can be :
-            // 1 = ?
-            // 2 = ?
-            // 3 = ?
+            // 1 = 1handed
+            // 2 = 2handed
+            // 3 = duel-wielded
 
             //we need to check if the unit has 1h/2h/dual wield here
             //TODO

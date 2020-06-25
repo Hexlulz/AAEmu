@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using AAEmu.Game.Core.Managers;
 using AAEmu.Game.Core.Managers.Id;
@@ -57,6 +58,10 @@ namespace AAEmu.Game.Models.Game.Units
         public bool IsInPatrol { get; set; } // so as not to run the route a second time
         public int SummarizeDamage { get; set; }
         public bool IsAutoAttack = false;
+        public DateTime GlobalCooldown { get; set; }
+        public List<(uint SkillId, DateTime ExpireTime)> ActiveComboSkills { get; set; }
+        public readonly object ActiveComboLock = new object();
+
         public uint SkillId;
         public ushort TlId { get; set; }
         public ItemContainer Equipment { get; set; }
@@ -73,6 +78,8 @@ namespace AAEmu.Game.Models.Game.Units
 
         public Unit()
         {
+            GlobalCooldown = DateTime.Now;
+            ActiveComboSkills = new List<(uint SkillId, DateTime ExpireTime)>();
             Bonuses = new Dictionary<uint, List<Bonus>>();
             IsInBattle = false;
             Equipment = new ItemContainer(null, SlotType.Equipment, true);

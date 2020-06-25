@@ -46,6 +46,34 @@ namespace AAEmu.Game.Models.Game.Skills
             Level = 1;
         }
 
+        private bool CanUseComboSkill(Unit caster)
+        {
+            lock (caster.ActiveComboLock)
+            {
+                foreach (var combo in caster.ActiveComboSkills)
+                {
+                    if (combo.SkillId == Template.Id && combo.ExpireTime >= DateTime.Now)
+                    {
+                        caster.ActiveComboSkills.RemoveAll(o => o.SkillId == combo.SkillId);
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        private bool IsComboSkill()
+        {
+            //TODO find another way to find combo skills..
+            List<uint> comboSkillIds = new List<uint> {
+                24895, 24895, 24894, 24894, 23649, 23648, 23647, 23646, 22908, 22907, 18131,
+                18127, 18126, 15083, 15082, 15082, 14939, 14938, 14938, 14933, 14932, 14931,                14930, 14837, 14836, 14836, 14832, 14811, 13733};
+
+            if (comboSkillIds.Contains(Template.Id))
+                return true;
+            return false;
+        }
+
         public void Use(Unit caster, SkillCaster casterCaster, SkillCastTarget targetCaster, SkillObject skillObject = null)
         {
             //if (caster is Character chr)
@@ -57,7 +85,11 @@ namespace AAEmu.Game.Models.Game.Skills
             //        return;
             //    }
             //}
-            
+            var CanUseComboSkill = this.CanUseComboSkill(caster);
+            if (caster.GlobalCooldown >= DateTime.Now && !CanUseComboSkill && !Template.IgnoreGlobalCooldown)
+                return;
+            if (IsComboSkill() && !CanUseComboSkill)
+                return;
             // TODO : Add check for range
             var skillRange = caster.ApplySkillModifiers(this, SkillAttribute.Range, Template.MaxRange);
 
