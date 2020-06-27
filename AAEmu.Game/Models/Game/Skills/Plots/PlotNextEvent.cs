@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AAEmu.Game.Core.Managers;
@@ -61,8 +61,12 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
         {
             var animTime = GetAnimDelay(effects);
             var projectileTime = GetProjectileDelay(caster, target);
-            var delay = animTime + projectileTime + Delay;
-
+            var delay = animTime + projectileTime;
+            if (Casting)
+                delay += (int)instance.Caster.ApplySkillModifiers(instance.ActiveSkill, Static.SkillAttribute.CastTime, Delay);
+            else
+                delay += Delay;
+            delay = Math.Clamp(delay, 0, int.MaxValue);
             return Event.PlayEvent(instance, this, delay);
         }
     }

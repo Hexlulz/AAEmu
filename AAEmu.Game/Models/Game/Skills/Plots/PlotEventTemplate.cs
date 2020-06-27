@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AAEmu.Game.Core.Managers;
 using AAEmu.Game.Core.Packets.G2C;
 using AAEmu.Game.Models.Game.Skills.Effects;
+using AAEmu.Game.Models.Game.Skills.Static;
 using AAEmu.Game.Models.Game.Units;
 using AAEmu.Game.Utils;
 
@@ -95,9 +96,11 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             else
                 flag = 0;
 
-            var castTime = NextEvents
+            double castTime = NextEvents
                 .Where(nextEvent => nextEvent.Casting && (pass ^ nextEvent.Fail))
                 .Aggregate(0, (current, nextEvent) => (current > nextEvent.Delay) ? current : (nextEvent.Delay / 10));
+            castTime = instance.Caster.ApplySkillModifiers(instance.ActiveSkill, SkillAttribute.CastTime, castTime);
+            castTime = Math.Clamp(castTime, 0, double.MaxValue);
             
             if (HasSpecialEffects())
             {
