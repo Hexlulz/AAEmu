@@ -16,18 +16,29 @@ namespace AAEmu.Game.Core.Packets.C2G
             var pid = stream.ReadUInt16(); // tl; pid
             var objId = stream.ReadBc();
 
-            NLog.LogManager.GetCurrentClassLogger().Error($"sid {sid}    tl/pid{pid}   objId {objId}");
+            NLog.LogManager.GetCurrentClassLogger().Debug($"sid {sid}    tl/pid{pid}   objId {objId}");
             //Experimental!
+            var tokens = Connection.ActiveChar.CastingCancellationTokens;
+
             if (pid != 0)
             {
+                foreach (var token in tokens)
+                {
+                    if (pid == token.Key)
+                    {
+                        token.Value.Cancel();
+                        Connection.ActiveChar.BroadcastPacket(new SCPlotCastingStoppedPacket(pid, 0, 1), true);
+                        Connection.ActiveChar.BroadcastPacket(new SCPlotChannelingStoppedPacket(pid, 0, 1), true);
+                        Connection.ActiveChar.BroadcastPacket(new SCPlotEndedPacket(pid), true);
+                        tokens.TryRemove(pid, out var notused);
+                        return;
+                    }
+                }
                 Connection.ActiveChar.BroadcastPacket(new SCPlotCastingStoppedPacket(pid, 0, 1), true);
                 Connection.ActiveChar.BroadcastPacket(new SCPlotChannelingStoppedPacket(pid, 0, 1), true);
                 Connection.ActiveChar.BroadcastPacket(new SCPlotEndedPacket(pid), true);
-            }
-
-            if (sid != 0)
-            {
-                Connection.ActiveChar.BroadcastPacket(new SCSkillEndedPacket(sid), true);
+                NLog.LogManager.GetCurrentClassLogger().Error("Could not find the associated id in the dictionary.");
+                return;
             }
 
             if (Connection.ActiveChar.ObjId != objId || Connection.ActiveChar.SkillTask == null ||

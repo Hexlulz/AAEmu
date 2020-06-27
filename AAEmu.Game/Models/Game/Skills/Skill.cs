@@ -228,9 +228,7 @@ namespace AAEmu.Game.Models.Game.Skills
 
             if (Template.Plot != null)
             {
-                var token = new CancellationTokenSource();
-                CancellationToken ct = token.Token;
-                Task.Run(() => Template.Plot.Execute(caster, casterCaster, target, targetCaster, skillObject, this, ct));
+                Task.Run(() => Template.Plot.Execute(caster, casterCaster, target, targetCaster, skillObject, this));
                 return;
             }
             

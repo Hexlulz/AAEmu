@@ -73,8 +73,11 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
         {
             byte flag = 2;
 
-            if (instance.Ct.IsCancellationRequested)
+            if ((instance.Ct.IsCancellationRequested && (cNext?.Casting ?? false)) || instance.Canceled)
+            {
+                instance.Canceled = true;
                 return;
+            }
 
             //Do tickets
             if (instance.Tickets.ContainsKey(Id))

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using AAEmu.Commons.Network;
 using AAEmu.Commons.Utils;
 using AAEmu.Game.Core.Managers;
@@ -51,6 +53,9 @@ namespace AAEmu.Game.Models.Game.Char
         public static Dictionary<uint, uint> _usedCharacterObjIds = new Dictionary<uint, uint>();
 
         private Dictionary<ushort, string> _options;
+
+        public ConcurrentDictionary<uint, CancellationTokenSource> CastingCancellationTokens = 
+            new ConcurrentDictionary<uint, CancellationTokenSource>();
 
         public List<IDisposable> Subscribers { get; set; }
 

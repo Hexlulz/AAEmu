@@ -12,6 +12,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
     {
         public ConcurrentBag<Task> Tasks;
         public CancellationToken Ct;
+        public bool Canceled = false;
 
         public ConcurrentDictionary<uint, int> Tickets { get; set; }
         public PlotConditionsCache ConditionsCache { get; set; }
@@ -28,7 +29,6 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
 
         public readonly object ConditionLock = new object();
         public readonly object TicketLock = new object();
-        public bool PlotEnded = false;
 
         public PlotInstance(Unit caster, SkillCaster casterCaster, BaseUnit target, SkillCastTarget targetCaster, SkillObject skillObject, Skill skill, CancellationToken ct)
         {
