@@ -1,5 +1,8 @@
 ﻿using AAEmu.Commons.Utils;
 using AAEmu.Game.Core.Managers;
+using AAEmu.Game.Models.Game.Char;
+using AAEmu.Game.Models.Game.Items;
+using AAEmu.Game.Models.Game.Items.Templates;
 using AAEmu.Game.Models.Game.Units;
 using AAEmu.Game.Utils;
 using NLog;
@@ -131,14 +134,12 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             // 1 = 1handed
             // 2 = 2handed
             // 3 = duel-wielded
-
-            //we need to check if the unit has 1h/2h/dual wield here
-            //TODO
-            //Just assume 1h for now..
-            if (weaponEquipStatus == 1)
-                return true;
-            else
-                return false;
+            WeaponWieldKind wieldKind = (WeaponWieldKind)weaponEquipStatus;
+            if (caster is Character character)
+            {
+                return character.GetWeaponWieldKind() == wieldKind;
+            }
+            return false;
         }
         
         private static bool ConditionChance(Unit caster, SkillCaster casterCaster, BaseUnit target,

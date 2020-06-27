@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AAEmu.Game.Core.Managers;
+using AAEmu.Game.Models.Game.Char;
 using AAEmu.Game.Models.Game.Skills.Effects;
 using AAEmu.Game.Models.Game.Units;
 using AAEmu.Game.Utils;
