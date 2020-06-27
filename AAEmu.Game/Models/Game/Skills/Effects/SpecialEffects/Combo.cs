@@ -29,12 +29,6 @@ namespace AAEmu.Game.Models.Game.Skills.Effects.SpecialEffects
 
             if (comboSkillId > 0 && caster != null && target != null)
             {
-                var template = SkillManager.Instance.GetSkillTemplate((uint)comboSkillId);
-                lock (caster.ActiveComboLock)
-                {
-                    caster.ActiveComboSkills.RemoveAll(o => o.SkillId == template.Id);
-                    caster.ActiveComboSkills.Add((template.Id, DateTime.Now.AddSeconds(timeFromNow/1000)));
-                }
                 //var comboSkill = new Skill(SkillManager.Instance.GetSkillTemplate((uint)comboSkillId));
                 //TaskManager.Instance.Schedule(new UseSkillTask(comboSkill, caster, casterObj, target, targetObj, skillObject), TimeSpan.FromMilliseconds(timeFromNow));
             }

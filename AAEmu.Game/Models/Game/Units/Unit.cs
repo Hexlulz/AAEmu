@@ -59,8 +59,6 @@ namespace AAEmu.Game.Models.Game.Units
         public int SummarizeDamage { get; set; }
         public bool IsAutoAttack = false;
         public DateTime GlobalCooldown { get; set; }
-        public List<(uint SkillId, DateTime ExpireTime)> ActiveComboSkills { get; set; }
-        public readonly object ActiveComboLock = new object();
 
         public uint SkillId;
         public ushort TlId { get; set; }
@@ -79,7 +77,6 @@ namespace AAEmu.Game.Models.Game.Units
         public Unit()
         {
             GlobalCooldown = DateTime.Now;
-            ActiveComboSkills = new List<(uint SkillId, DateTime ExpireTime)>();
             Bonuses = new Dictionary<uint, List<Bonus>>();
             IsInBattle = false;
             Equipment = new ItemContainer(null, SlotType.Equipment, true);

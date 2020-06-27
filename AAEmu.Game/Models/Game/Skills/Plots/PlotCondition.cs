@@ -29,7 +29,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                     res = ConditionRelation(caster, casterCaster, target, targetCaster, skillObject, Param1, Param2, Param3);
                     break;
                 case PlotConditionType.Direction:
-                    res = ConditionDirection(caster, casterCaster, target, targetCaster, skillObject, Param1, Param2, Param3);
+                    res = ConditionDirection(caster, casterCaster, target, targetCaster, skillObject, Param1, Param2, Param3, eventCondition);
                     break;
                 case PlotConditionType.BuffTag:
                     res = ConditionBuffTag(caster, casterCaster, target, targetCaster, skillObject, Param1, Param2,Param3, eventCondition);
@@ -101,10 +101,16 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
         }
 
         private static bool ConditionDirection(Unit caster, SkillCaster casterCaster, BaseUnit target,
-            SkillCastTarget targetCaster, SkillObject skillObject, int unk1, int unk2, int unk3)
+            SkillCastTarget targetCaster, SkillObject skillObject, int unk1, int unk2, int unk3, PlotEventCondition eventCondition)
         {
-            // No params on this
-            return true;
+            //TODO we need to calculate if unit facing us or not.
+            if (eventCondition.TargetId == 3)
+                return false;
+            else if (eventCondition.TargetId == 4)
+                return true;//Always backstab?
+            
+            //default?
+            return false;
         }
 
         private static bool ConditionBuffTag(Unit caster, SkillCaster casterCaster, BaseUnit target,
