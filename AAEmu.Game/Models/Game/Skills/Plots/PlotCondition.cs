@@ -176,6 +176,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             // Param1 = Min range
             // Param2 = Max range
             var range = MathUtil.CalculateDistance(caster.Position, target.Position);
+            range -= 2;//Temp fix because the calculation is off
             return range >= minRange && range <= maxRange;
         }
         
@@ -209,7 +210,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             // unsure if player or target
             // only used for Flamebolt for some reason.
             // Also always a "NotCondition" so will default to false (result will be True)
-            return false;
+            return true;
         }
         
         private static bool ConditionVisible(Unit caster, SkillCaster casterCaster, BaseUnit target,
@@ -219,20 +220,16 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             return true;
         }
         private static bool ConditionABLevel(Unit caster, SkillCaster casterCaster, BaseUnit target,
-            SkillCastTarget targetCaster, SkillObject skillObject, int flag, int min, int max)
+            SkillCastTarget targetCaster, SkillObject skillObject, int abilityType, int min, int max)
         {
-            // Unsure what Param1 is. Seems like a 3 bit flag
-            // For Arc Lightning, we have a value of 7, using 3 different conditions
-            // Need to find what the flags mean
-            // Could be target/caster level ? 
-            // 1 = caster ?
-            // 2 = target ?
-            // 3 = caster+target
-            // 4 = ???
-            // 7 = caster+target+???
-            
-            var level = caster.Level;
-            return level >= min && level <= max;
+            if (caster is Character character)
+            {
+                var ability = character.Abilities.Abilities[(AbilityType)abilityType];
+                int abLevel = ExpirienceManager.Instance.GetLevelFromExp(ability.Exp);
+                return abLevel >= min && abLevel <= max;
+            }
+            //Should this ever not be a character using this condition?
+            return false;
         }
     }
 }
