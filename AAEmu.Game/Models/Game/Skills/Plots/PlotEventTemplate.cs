@@ -39,66 +39,18 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             NextEvents = new LinkedList<PlotNextEvent>();
         }
 
-        private bool GetConditionResult(PlotInstance instance,PlotEventCondition condition)
-        {
-            lock (instance.ConditionLock)
-            {
-                var not = condition.Condition.NotCondition;
-                //Check if condition was cached
-                if (instance.UseConditionCache(condition.Condition))
-                {
-                    var cacheResult = instance.GetConditionCacheResult(condition.Condition);
-                    //Apply not condition
-                    cacheResult = not ? !cacheResult : cacheResult;
-
-                    return cacheResult;
-                }
-
-                //Check 
-                bool result = condition.Condition.Check(instance.Caster, instance.CasterCaster, instance.Target, instance.TargetCaster, instance.SkillObject, condition);
-                if (result)
-                {
-                    //We need to undo the not condition to store in cache
-                    instance.UpdateConditionCache(condition.Condition, not ? false : true);
-                    return true;
-                }
-                else
-                {
-                    instance.UpdateConditionCache(condition.Condition, not ? true : false);
-                    return false;
-                }
-            }
-        }
 
         private bool СheckСonditions(PlotInstance instance)
         {
-            foreach (var condition in Conditions)
-            {
-                try
-                {
-                    if (!GetConditionResult(instance, condition))
-                    {
-                        if (condition.NotifyFailure)
-                            instance.Caster.BroadcastPacket(new SCSkillStoppedPacket(instance.Caster.ObjId, instance.ActiveSkill.Id), true);
-                        return false;
-                    }
-                }
-                catch { NLog.LogManager.GetCurrentClassLogger().Error("CheckConditions Failed."); }
-            }
-
-            return true;
+            return Conditions.All(condition => condition.CheckCondition(instance));
         }
         
         private bool HasSpecialEffects()
         {
-            bool has = false;
-            foreach (var eff in Effects)
+            var has = false;
+            foreach (var template in Effects.Select(eff => SkillManager.Instance.GetEffectTemplate(eff.ActualId, eff.ActualType)).OfType<SpecialEffect>())
             {
-                var template = SkillManager.Instance.GetEffectTemplate(eff.ActualId, eff.ActualType);
-                if (template is SpecialEffect)
-                {
-                    has = true;
-                }
+                has = true;
             }
             return has;
         }
@@ -107,22 +59,12 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
         {
             var appliedEffects = false;
             var skill = instance.ActiveSkill;
+            
             foreach (var eff in Effects)
             {
-                var template = SkillManager.Instance.GetEffectTemplate(eff.ActualId, eff.ActualType);
-
-                if (template is BuffEffect)
-                    flag = 6; //idk what this does?  
-                if (template is SpecialEffect)
-                    appliedEffects = true;
-
-                template.Apply(
-                    instance.Caster,
-                    instance.CasterCaster,
-                    instance.Target,
-                    instance.TargetCaster,
-                    new CastPlot(PlotId, skill.TlId, Id, skill.Template.Id), skill, instance.SkillObject, DateTime.Now);
+                eff.ApplyEffect(instance, this, skill, ref flag, ref appliedEffects);
             }
+            
             return appliedEffects;
         }
 
@@ -142,27 +84,21 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             //Check if we hit max tickets
             if (instance.Tickets[Id] > Tickets && Tickets > 1)
             {
-                //Max Recursion. Leave Scope
                 return;
             }
 
             // Check Conditions
-            bool appliedEffects = false;
-            
-            bool pass = СheckСonditions(instance);
+
+            var pass = СheckСonditions(instance);
             if (pass)
-                appliedEffects = ApplyEffects(instance,ref flag);
+                ApplyEffects(instance, ref flag);
             else
                 flag = 0;
 
-            int castTime = 0;
-            foreach (var nextEvent in NextEvents)
-            {
-                //TODO We need to know if the next event(s) is during a cast
-                // Idk how else to find this information...
-                if (nextEvent.Casting && (pass ^ nextEvent.Fail))
-                    castTime = (castTime > nextEvent.Delay) ? castTime : (nextEvent.Delay / 10);
-            }
+            var castTime = NextEvents
+                .Where(nextEvent => nextEvent.Casting && (pass ^ nextEvent.Fail))
+                .Aggregate(0, (current, nextEvent) => (current > nextEvent.Delay) ? current : (nextEvent.Delay / 10));
+            
             if (HasSpecialEffects())
             {
                 var skill = instance.ActiveSkill;
@@ -172,12 +108,13 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                 instance.Caster.BroadcastPacket(new SCPlotEventPacket(skill.TlId, Id, skill.Template.Id, casterPlotObj, targetPlotObj, unkId, (ushort)castTime, flag), true);
             }
 
-            List<Task> tasks = new List<Task>();
+            var tasks = new List<Task>();
             foreach (var nextEvent in NextEvents)
             {
                 if (pass ^ nextEvent.Fail)
                     tasks.Add(nextEvent.PlayNextEvent(instance, instance.Caster, instance.Target, Effects));
             }
+            
             await Task.WhenAll(tasks.ToArray());
         }
 
