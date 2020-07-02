@@ -32,7 +32,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             }
 
             NLog.LogManager.GetCurrentClassLogger().Debug($"Plot: {Id} tl: {skill.TlId} Executing.");
-            await Task.Run((() => EventTemplate.PlayEvent(instance, null)));
+            await Task.Run((() => EventTemplate.PlayEvent(instance, new PlotEventInstance(instance), null)));
             NLog.LogManager.GetCurrentClassLogger().Debug($"Plot: {Id} tl: {skill.TlId} Finished.");
 
             if (caster is Character character2)

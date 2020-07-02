@@ -11,14 +11,19 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
         public List<BaseUnit> Targets { get; set; }
         private List<BaseUnit> PreviousTargets { get; set; }
 
-        public PlotEventInstance()
+        public PlotEventInstance(PlotInstance instance)
         {
             Targets = new List<BaseUnit>();
+            Targets.Add(instance.Target);
+            PreviousTargets = new List<BaseUnit>();
+            PreviousTargets.Add(instance.Target);
         }
-        public PlotEventInstance(BaseUnit source, List<BaseUnit> targets)
+        public PlotEventInstance(PlotEventInstance eventInstance)
         {
-            Source = source;
-            Targets = targets;
+            Source = eventInstance.Source;
+            Targets = new List<BaseUnit>(eventInstance.Targets);
+            PreviousSource = Source;
+            PreviousTargets = new List<BaseUnit>(eventInstance.Targets);
         }
 
         public void UpdateSource(PlotEventTemplate template, PlotInstance instance)
@@ -32,7 +37,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                     Source = instance.Target;
                     break;
                 case PlotSourceUpdateMethodType.PreviousSource:
-                    Source = PreviousSource;
+                    Source = (PreviousSource != null) ? PreviousSource : instance.Caster;
                     break;
                 case PlotSourceUpdateMethodType.PreviousTarget:
                     //Will there be multiple targets when this is called?

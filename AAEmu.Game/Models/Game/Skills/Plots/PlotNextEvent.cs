@@ -58,7 +58,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
 
         }
 
-        public Task PlayNextEvent(PlotInstance instance, BaseUnit caster, BaseUnit target, IEnumerable<PlotEventEffect> effects)
+        public Task PlayNextEvent(PlotInstance instance, PlotEventInstance eventInstance, BaseUnit caster, BaseUnit target, IEnumerable<PlotEventEffect> effects)
         {
             var animTime = GetAnimDelay(effects);
             var projectileTime = GetProjectileDelay(caster, target);
@@ -68,7 +68,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             else
                 delay += Delay;
             delay = Math.Clamp(delay, 0, int.MaxValue);
-            return Event.PlayEvent(instance, this, delay);
+            return Event.PlayEvent(instance, eventInstance, this, delay);
         }
     }
 }

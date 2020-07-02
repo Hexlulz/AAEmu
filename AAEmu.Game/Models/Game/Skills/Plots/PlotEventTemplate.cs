@@ -69,7 +69,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             return appliedEffects;
         }
 
-        public async Task PlayEvent(PlotInstance instance, PlotNextEvent cNext)
+        public async Task PlayEvent(PlotInstance instance, PlotEventInstance eventInstance, PlotNextEvent cNext)
         {
             byte flag = 2;
 
@@ -118,16 +118,16 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             foreach (var nextEvent in NextEvents)
             {
                 if (pass ^ nextEvent.Fail)
-                    tasks.Add(nextEvent.PlayNextEvent(instance, instance.Caster, instance.Target, Effects));
+                    tasks.Add(nextEvent.PlayNextEvent(instance, eventInstance, instance.Caster, instance.Target, Effects));
             }
             
             await Task.WhenAll(tasks.ToArray());
         }
 
-        public async Task PlayEvent(PlotInstance instance, PlotNextEvent cNext ,int delay)
+        public async Task PlayEvent(PlotInstance instance, PlotEventInstance eventInstance, PlotNextEvent cNext ,int delay)
         {
             await Task.Delay(delay);
-            await PlayEvent(instance, cNext);
+            await PlayEvent(instance, eventInstance,cNext);
         }
     }
 }
