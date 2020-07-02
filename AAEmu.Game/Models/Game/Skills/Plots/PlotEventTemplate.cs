@@ -92,7 +92,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             }
 
             // Check Conditions
-
+            //TODO Loop for every target in PlotEventInstance
             var pass = СheckСonditions(instance);
             if (pass)
                 ApplyEffects(instance, ref flag);
@@ -118,7 +118,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             foreach (var nextEvent in NextEvents)
             {
                 if (pass ^ nextEvent.Fail)
-                    tasks.Add(nextEvent.PlayNextEvent(instance, eventInstance, instance.Caster, instance.Target, Effects));
+                    tasks.Add(nextEvent.PlayNextEvent(instance, new PlotEventInstance(eventInstance), instance.Caster, instance.Target, Effects));
             }
             
             await Task.WhenAll(tasks.ToArray());
