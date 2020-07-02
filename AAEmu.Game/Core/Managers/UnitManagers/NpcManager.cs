@@ -82,6 +82,7 @@ namespace AAEmu.Game.Core.Managers.UnitManagers
                     SetEquipItemTemplate(npc, template.BodyItems[i].ItemId, slot, 0, template.BodyItems[i].NpcOnly);
             }
 
+#if RELEASE
             foreach (var buffId in template.Buffs)
             {
                 var buff = SkillManager.Instance.GetBuffTemplate(buffId);
@@ -102,6 +103,7 @@ namespace AAEmu.Game.Core.Managers.UnitManagers
                 bonus.Value = bonusTemplate.Value; // TODO using LinearLevelBonus
                 npc.AddBonus(0, bonus);
             }
+#endif
 
             npc.Hp = npc.MaxHp;
             npc.Mp = npc.MaxMp;
@@ -367,9 +369,9 @@ namespace AAEmu.Game.Core.Managers.UnitManagers
                                         var itemId = reader2.GetUInt32("item_id", 0);
                                         var npcOnly = reader2.GetBoolean("npc_only", true);
                                         var slot = reader2.GetInt32("slot_type_id") - 23;
-                                        
+
                                         // TODO: slot == 0, как выбрать нужный FaceId?
-                                        
+
                                         if (slot == 1)
                                         {
                                             if (itemId == template.HairId)
@@ -379,7 +381,8 @@ namespace AAEmu.Game.Core.Managers.UnitManagers
 
                                             if (template.HairId == 0)
                                             {
-                                                template.BodyItems[slot] = (itemId, npcOnly); // TODO: slot == 1, как выбрать нужный HairId?
+                                                template.BodyItems[slot] =
+                                                    (itemId, npcOnly); // TODO: slot == 1, как выбрать нужный HairId?
                                             }
                                         }
                                         else
@@ -494,7 +497,7 @@ namespace AAEmu.Game.Core.Managers.UnitManagers
                                 _goods[id].Items[itemId].Add(grade);
                             }
                             else
-                                _goods[id].Items.Add(itemId, new List<byte> { grade });
+                                _goods[id].Items.Add(itemId, new List<byte> {grade});
                         }
                     }
                 }
@@ -503,7 +506,8 @@ namespace AAEmu.Game.Core.Managers.UnitManagers
             }
         }
 
-        private void SetEquipItemTemplate(Npc npc, uint templateId, EquipmentItemSlot slot, byte grade = 0, bool npcOnly = false)
+        private void SetEquipItemTemplate(Npc npc, uint templateId, EquipmentItemSlot slot, byte grade = 0,
+            bool npcOnly = false)
         {
             if (npcOnly && npc.Equipment.GetItemBySlot((int)slot) != null)
                 return;

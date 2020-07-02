@@ -15,15 +15,16 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
 
         public PlotEventTemplate EventTemplate { get; set; }
 
-        public async Task Execute(Unit caster, SkillCaster casterCaster, BaseUnit target, SkillCastTarget targetCaster, SkillObject skillObject, Skill skill)
+        public async Task Execute(Unit caster, SkillCaster casterCaster, BaseUnit target, SkillCastTarget targetCaster,
+            SkillObject skillObject, Skill skill)
         {
             var token = new CancellationTokenSource();
-            CancellationToken ct = token.Token;
-            PlotInstance instance = new PlotInstance(caster, casterCaster, target, targetCaster, skillObject, skill, ct);
+            var instance = new PlotInstance(caster, casterCaster, target, targetCaster, skillObject, skill,
+                token.Token);
 
             if (caster is Character character)
             {
-                bool test = character.CastingCancellationTokens.TryAdd(skill.TlId, token);
+                var test = character.CastingCancellationTokens.TryAdd(skill.TlId, token);
                 if (!test)
                 {
                     NLog.LogManager.GetCurrentClassLogger().Error("Could not add cancel token to dictionary");
@@ -32,17 +33,18 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             }
 
             NLog.LogManager.GetCurrentClassLogger().Debug($"Plot: {Id} tl: {skill.TlId} Executing.");
-            await Task.Run((() => EventTemplate.PlayEvent(instance, new PlotEventInstance(instance), null)));
+            await EventTemplate.PlayEvent(instance, new PlotEventInstance(instance), null);
             NLog.LogManager.GetCurrentClassLogger().Debug($"Plot: {Id} tl: {skill.TlId} Finished.");
 
             if (caster is Character character2)
             {
-                if (!ct.IsCancellationRequested)
+                if (!token.IsCancellationRequested)
                 {
-                    character2.CastingCancellationTokens.TryRemove(skill.TlId, out var notused);
+                    character2.CastingCancellationTokens.TryRemove(skill.TlId, out _);
                     caster.BroadcastPacket(new SCPlotEndedPacket(instance.ActiveSkill.TlId), true);
                 }
             }
+
             TlIdManager.Instance.ReleaseId(skill.TlId);
         }
     }
