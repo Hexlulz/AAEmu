@@ -43,29 +43,29 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
 
         private bool СheckСonditions(PlotInstance instance)
         {
-            return Conditions.All(condition => condition.CheckCondition(instance));
+            return Conditions
+                .AsParallel()
+                .All(condition => condition.CheckCondition(instance));
         }
-        
+
         private bool HasSpecialEffects()
         {
-            var has = false;
-            foreach (var template in Effects.Select(eff => SkillManager.Instance.GetEffectTemplate(eff.ActualId, eff.ActualType)).OfType<SpecialEffect>())
-            {
-                has = true;
-            }
-            return has;
+            return Effects
+                .Select(eff => SkillManager.Instance.GetEffectTemplate(eff.ActualId, eff.ActualType))
+                .OfType<SpecialEffect>()
+                .Any();
         }
 
         private bool ApplyEffects(PlotInstance instance, ref byte flag)
         {
             var appliedEffects = false;
             var skill = instance.ActiveSkill;
-            
+
             foreach (var eff in Effects)
             {
                 eff.ApplyEffect(instance, this, skill, ref flag, ref appliedEffects);
             }
-            
+
             return appliedEffects;
         }
 
@@ -104,30 +104,43 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                 .Aggregate(0, (current, nextEvent) => (current > nextEvent.Delay) ? current : (nextEvent.Delay / 10));
             castTime = instance.Caster.ApplySkillModifiers(instance.ActiveSkill, SkillAttribute.CastTime, castTime);
             castTime = Math.Clamp(castTime, 0, double.MaxValue);
-            
+
             if (HasSpecialEffects())
             {
                 var skill = instance.ActiveSkill;
                 var unkId = ((cNext?.Casting ?? false) || (cNext?.Channeling ?? false)) ? instance.Caster.ObjId : 0;
                 var casterPlotObj = new PlotObject(instance.Caster);
                 var targetPlotObj = new PlotObject(instance.Target);
-                instance.Caster.BroadcastPacket(new SCPlotEventPacket(skill.TlId, Id, skill.Template.Id, casterPlotObj, targetPlotObj, unkId, (ushort)castTime, flag), true);
+                instance.Caster.BroadcastPacket(
+                    new SCPlotEventPacket(skill.TlId, Id, skill.Template.Id, casterPlotObj, targetPlotObj, unkId,
+                        (ushort)castTime, flag), true);
             }
 
-            var tasks = new List<Task>();
-            foreach (var nextEvent in NextEvents)
-            {
-                if (pass ^ nextEvent.Fail)
-                    tasks.Add(nextEvent.PlayNextEvent(instance, new PlotEventInstance(eventInstance), instance.Caster, instance.Target, Effects));
-            }
-            
+            var tasks = NextEvents
+                .AsParallel()
+                .Where(nextEvent => pass ^ nextEvent.Fail)
+                .Select(nextEvent => nextEvent
+                    .PlayNextEvent(instance, new PlotEventInstance(eventInstance), instance.Caster, instance.Target,
+                        Effects)
+                )
+                .ToArray();
+
+            // var tasks = new List<Task>();
+            // foreach (var nextEvent in NextEvents)
+            // {
+            //     if (pass ^ nextEvent.Fail)
+            //         tasks.Add(nextEvent.PlayNextEvent(instance, new PlotEventInstance(eventInstance), instance.Caster,
+            //             instance.Target, Effects));
+            // }
+
             await Task.WhenAll(tasks.ToArray());
         }
 
-        public async Task PlayEvent(PlotInstance instance, PlotEventInstance eventInstance, PlotNextEvent cNext ,int delay)
+        public async Task PlayEvent(PlotInstance instance, PlotEventInstance eventInstance, PlotNextEvent cNext,
+            int delay)
         {
             await Task.Delay(delay);
-            await PlayEvent(instance, eventInstance,cNext);
+            await PlayEvent(instance, eventInstance, cNext);
         }
     }
 }

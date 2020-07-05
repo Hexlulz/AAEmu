@@ -58,17 +58,19 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
 
         }
 
-        public Task PlayNextEvent(PlotInstance instance, PlotEventInstance eventInstance, BaseUnit caster, BaseUnit target, IEnumerable<PlotEventEffect> effects)
+        public Task PlayNextEvent(PlotInstance instance, PlotEventInstance eventInstance, BaseUnit caster,
+            BaseUnit target, IEnumerable<PlotEventEffect> effects)
         {
             var animTime = GetAnimDelay(effects);
             var projectileTime = GetProjectileDelay(caster, target);
             var delay = animTime + projectileTime;
             if (Casting)
-                delay += (int)instance.Caster.ApplySkillModifiers(instance.ActiveSkill, Static.SkillAttribute.CastTime, Delay);
+                delay += (int)instance.Caster.ApplySkillModifiers(instance.ActiveSkill, Static.SkillAttribute.CastTime,
+                    Delay);
             else
                 delay += Delay;
             delay = Math.Clamp(delay, 0, int.MaxValue);
-            return Event.PlayEvent(instance, eventInstance, this, delay);
+            return delay > 0 ? Event.PlayEvent(instance, eventInstance, this, delay) : Event.PlayEvent(instance, eventInstance, this);
         }
     }
 }

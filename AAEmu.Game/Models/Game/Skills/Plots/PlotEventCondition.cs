@@ -30,14 +30,14 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             {
                 var not = condition.Condition.NotCondition;
                 //Check if condition was cached
-                if (instance.UseConditionCache(condition.Condition))
-                {
-                    var cacheResult = instance.GetConditionCacheResult(condition.Condition);
-                    //Apply not condition
-                    cacheResult = not ? !cacheResult : cacheResult;
-
-                    return cacheResult;
-                }
+                // if (instance.UseConditionCache(condition.Condition))
+                // {
+                //     var cacheResult = instance.GetConditionCacheResult(condition.Condition);
+                //     //Apply not condition
+                //     cacheResult = not ? !cacheResult : cacheResult;
+                //
+                //     return cacheResult;
+                // }
 
                 // TODO : Apply Source & Target update here!
                 
@@ -46,11 +46,11 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                 if (result)
                 {
                     //We need to undo the not condition to store in cache
-                    instance.UpdateConditionCache(condition.Condition, !not);
+                    // instance.UpdateConditionCache(condition.Condition, !not);
                     return true;
                 }
 
-                instance.UpdateConditionCache(condition.Condition, not);
+                // instance.UpdateConditionCache(condition.Condition, not);
                 return false;
             }
         }
