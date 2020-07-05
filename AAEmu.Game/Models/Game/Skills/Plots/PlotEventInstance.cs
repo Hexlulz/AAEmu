@@ -14,9 +14,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
         public PlotEventInstance(PlotInstance instance)
         {
             Targets = new List<BaseUnit>();
-            PreviousTargets = new List<BaseUnit>();
-            PreviousTargets.Add(instance.Target);
-
+            PreviousTargets = new List<BaseUnit> { instance.Target };
             PreviousSource = instance.Caster;
         }
         public PlotEventInstance(PlotEventInstance eventInstance)
