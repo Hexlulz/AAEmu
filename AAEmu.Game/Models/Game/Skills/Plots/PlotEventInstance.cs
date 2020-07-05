@@ -14,14 +14,15 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
         public PlotEventInstance(PlotInstance instance)
         {
             Targets = new List<BaseUnit>();
-            Targets.Add(instance.Target);
             PreviousTargets = new List<BaseUnit>();
             PreviousTargets.Add(instance.Target);
+
+            PreviousSource = instance.Caster;
         }
         public PlotEventInstance(PlotEventInstance eventInstance)
         {
             Source = eventInstance.Source;
-            Targets = new List<BaseUnit>(eventInstance.Targets);
+            Targets = new List<BaseUnit>();
             PreviousSource = Source;
             PreviousTargets = new List<BaseUnit>(eventInstance.Targets);
         }
@@ -37,7 +38,7 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
                     Source = instance.Target;
                     break;
                 case PlotSourceUpdateMethodType.PreviousSource:
-                    Source = (PreviousSource != null) ? PreviousSource : instance.Caster;
+                    Source = PreviousSource;
                     break;
                 case PlotSourceUpdateMethodType.PreviousTarget:
                     //Will there be multiple targets when this is called?
@@ -52,19 +53,16 @@ namespace AAEmu.Game.Models.Game.Skills.Plots
             switch ((PlotTargetUpdateMethodType)template.TargetUpdateMethodId)
             {
                 case PlotTargetUpdateMethodType.OriginalSource:
-                    Targets.Clear();
                     Targets.Add(instance.Caster);
                     break;
                 case PlotTargetUpdateMethodType.OriginalTarget:
-                    Targets.Clear();
                     Targets.Add(instance.Target);
                     break;
                 case PlotTargetUpdateMethodType.PreviousSource:
-                    Targets.Clear();
-                    Targets.Add(Source);
+                    Targets.Add(PreviousSource);
                     break;
                 case PlotTargetUpdateMethodType.PreviousTarget:
-                    //Use old target(s)
+                    Targets.AddRange(PreviousTargets);
                     break;
                 case PlotTargetUpdateMethodType.Area:
                     //Todo
