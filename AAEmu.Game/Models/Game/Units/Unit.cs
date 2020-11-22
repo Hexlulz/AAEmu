@@ -358,6 +358,19 @@ namespace AAEmu.Game.Models.Game.Units
             }
             return result;
         }
+
+        protected double CalculateWithBonuses(double value, UnitAttribute attr)
+        {
+            foreach (var bonus in GetBonuses(attr))
+            {
+                if (bonus.Template.ModifierType == UnitModifierType.Percent)
+                    value += (value * bonus.Value / 100f);
+                else
+                    value += bonus.Value;
+            }
+            return value;
+        }
+
         public void SendPacket(GamePacket packet)
         {
             Connection?.SendPacket(packet);
