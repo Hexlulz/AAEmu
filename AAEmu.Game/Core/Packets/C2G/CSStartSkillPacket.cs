@@ -14,6 +14,8 @@ namespace AAEmu.Game.Core.Packets.C2G
         public override void Read(PacketStream stream)
         {
             var skillId = stream.ReadUInt32();
+            if (skillId == 2 || skillId == 3 || skillId == 4)
+                return;
 
             var skillCasterType = stream.ReadByte(); // кто применяет
             var skillCaster = SkillCaster.GetByType((SkillCasterType)skillCasterType);
@@ -56,6 +58,9 @@ namespace AAEmu.Game.Core.Packets.C2G
             }
             else
                 _log.Warn("StartSkill: Id {0}, undefined use type", skillId);
+                //If its a valid skill cast it. This fixes interactions with quest items/doodads.
+                var unskill = new Skill(SkillManager.Instance.GetSkillTemplate(skillId));
+                if(unskill != null) unskill.Use(Connection.ActiveChar, skillCaster, skillCastTarget, skillObject);
         }
     }
 }

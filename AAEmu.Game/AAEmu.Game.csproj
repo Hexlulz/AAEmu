@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
         <RuntimeIdentifiers>win7-x64;win7-x86;win8-x64;win8-x86;win81-x64;win81-x86;win10-x64;win10-x86;centos.7-x64;debian.9-x64;ubuntu.18.04-x64;sles-x64;sles.12-x64;sles.12.1-x64;sles.12.2-x64;sles.12.3-x64;alpine-x64;alpine.3.7-x64</RuntimeIdentifiers>
         <VersionPrefix>0.0.2.0</VersionPrefix>
         <VersionSuffix>alpha</VersionSuffix>
@@ -34,6 +34,7 @@
         </Compile>
         <None Include="Scripts\**\**" CopyToOutputDirectory="PreserveNewest" LinkBase="Scripts\" />
         <None Include="Data\**\**" CopyToOutputDirectory="PreserveNewest" LinkBase="Data\" />
+      <None Include="Configs\**\**" CopyToOutputDirectory="PreserveNewest" LinkBase="Configs\" />
     </ItemGroup>
 
     <ItemGroup>
@@ -48,11 +49,21 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="2.2.0" />
         <PackageReference Include="NLog" Version="4.5.11" />
-        <PackageReference Include="Quartz" Version="3.0.7" />
+        <PackageReference Include="Quartz" Version="3.2.3" />        
+        <PackageReference Include="Ionic.Zlib" Version="1.9.1.5" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="DotNet.Config">
+        <HintPath>DotNet.Config.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
     <ItemGroup>
       <None Update="Scripts\Commands\ReloadConfigs.cs">
+        <LinkBase>$([MSBuild]::EnsureTrailingSlash(%(LinkBase)))</LinkBase>
+      </None>
+      <None Update="Scripts\Commands\TestFSets.cs">
         <LinkBase>$([MSBuild]::EnsureTrailingSlash(%(LinkBase)))</LinkBase>
       </None>
       <None Update="Scripts\Commands\TestHeight.cs">
@@ -76,12 +87,17 @@
       <None Update="Scripts\Commands\SpawnGrid.cs">
         <LinkBase>$([MSBuild]::EnsureTrailingSlash(%(LinkBase)))</LinkBase>
       </None>
+      <None Update="Scripts\Commands\TestMails.cs">
+        <LinkBase>$([MSBuild]::EnsureTrailingSlash(%(LinkBase)))</LinkBase>
+      </None>
       <None Update="Scripts\Commands\TestZoneState.cs">
         <LinkBase>$([MSBuild]::EnsureTrailingSlash(%(LinkBase)))</LinkBase>
       </None>
       <None Update="Scripts\Commands\TestEcho.cs">
         <LinkBase>$([MSBuild]::EnsureTrailingSlash(%(LinkBase)))</LinkBase>
       </None>
+      <None Update="Scripts\Commands\GetAttribute.cs">
+        <LinkBase>$([MSBuild]::EnsureTrailingSlash(%(LinkBase)))</LinkBase>
+      </None>
     </ItemGroup>
-
 </Project>

@@ -7,7 +7,6 @@ namespace AAEmu.Game.Models.Game.Auction
     public class AuctionItem
     {
         public ulong ID { get; set; }
-        public string ItemName { get; set; }
         public byte Duration { get; set; }
         public uint ItemID { get; set; }
         public ulong ObjectID { get; set; }
@@ -25,17 +24,14 @@ namespace AAEmu.Game.Models.Game.Auction
         public byte WorldId2 { get; set; }
         public uint ClientId { get; set; }
         public string ClientName { get; set; }
-        public uint StartMoney { get; set; }
-        public uint DirectMoney { get; set; }
-        public ulong TimeLeft { get; set; } //seconds
+        public int StartMoney { get; set; }
+        public int DirectMoney { get; set; }
+        public ulong TimeLeft { get { return (ulong)EndTime.Subtract(DateTime.UtcNow).TotalSeconds; } } //seconds
         public byte BidWorldID { get; set; }
         public uint BidderId { get; set; }
         public string BidderName { get; set; }
-        public uint BidMoney { get; set; }
+        public int BidMoney { get; set; }
         public uint Extra { get; set; }
-
-        public uint CategoryA { get; set; }
-        public uint CategoryB { get; set; }
-        public uint CategoryC { get; set; }
+        public bool IsDirty { get; set; }
     }
 }

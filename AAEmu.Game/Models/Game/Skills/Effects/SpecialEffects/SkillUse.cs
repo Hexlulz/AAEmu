@@ -1,7 +1,8 @@
 ﻿using System;
-
+using AAEmu.Commons.Utils;
+using AAEmu.Game.Core.Managers;
 using AAEmu.Game.Models.Game.Units;
-
+using AAEmu.Game.Models.Tasks.Skills;
 using NLog;
 
 namespace AAEmu.Game.Models.Game.Skills.Effects.SpecialEffects
@@ -18,12 +19,16 @@ namespace AAEmu.Game.Models.Game.Skills.Effects.SpecialEffects
             Skill skill,
             SkillObject skillObject,
             DateTime time,
-            int value1,
-            int value2,
-            int value3,
+            int skillId,
+            int delay,
+            int chance,
             int value4)
         {
-            _log.Warn("value1 {0}, value2 {1}, value3 {2}, value4 {3}", value1, value2, value3, value4);
+            if (Rand.Next(0, 101) > chance && chance != 0)
+                return;
+            var useSkill = new Skill(SkillManager.Instance.GetSkillTemplate((uint)skillId));
+            TaskManager.Instance.Schedule(new UseSkillTask(useSkill, caster, casterObj, target, targetObj, skillObject), TimeSpan.FromMilliseconds(delay));
+            _log.Warn("SkillId {0}, Delay {1}, Chance {2}, value4 {3}", skillId, delay, chance, value4);
         }
     }
 }

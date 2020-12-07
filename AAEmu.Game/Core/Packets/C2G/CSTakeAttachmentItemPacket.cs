@@ -21,7 +21,7 @@ namespace AAEmu.Game.Core.Packets.C2G
             var id = stream.ReadUInt64();
             var grade = stream.ReadByte();
             var flags = stream.ReadByte();
-            var count = stream.ReadInt32();
+            var count = stream.ReadUInt32();
             var detailType = stream.ReadByte();
 
             var creationTime = stream.ReadDateTime();
@@ -34,7 +34,7 @@ namespace AAEmu.Game.Core.Packets.C2G
             var slotType = stream.ReadByte();
             var slot = stream.ReadByte();
       
-            Connection.ActiveChar.Mails.GetAttached(mailId, false, true, true);
+            Connection.ActiveChar.Mails.GetAttached(mailId, false, true, false, id);
         }
     }
 }

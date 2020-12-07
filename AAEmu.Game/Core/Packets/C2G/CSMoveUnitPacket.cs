@@ -31,7 +31,7 @@ namespace AAEmu.Game.Core.Packets.C2G
 
                 RemoveEffects(mateInfo, moveType);
                 mateInfo.SetPosition(moveType.X, moveType.Y, moveType.Z, moveType.RotationX, moveType.RotationY, moveType.RotationZ);
-                mateInfo.BroadcastPacket(new SCOneUnitMovementPacket(objId, moveType), myObjId);
+                mateInfo.BroadcastPacket(new SCOneUnitMovementPacket(objId, moveType), false);
 
                 if (mateInfo.Att1 > 0)
                 {
@@ -61,7 +61,7 @@ namespace AAEmu.Game.Core.Packets.C2G
                 RemoveEffects(Connection.ActiveChar, moveType);
 
                 // This will allow you to walk on a boat, but crashes other clients. Not sure why yet.
-                if ((moveType.Flags & 32) == 32 && (moveType is UnitMoveType mType))
+                if ((moveType.Flags & 0x20) != 0 && (moveType is UnitMoveType mType))
                 {
                     Connection
                         .ActiveChar

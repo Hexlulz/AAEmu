@@ -19,7 +19,7 @@ namespace AAEmu.Game.Models.Game.DoodadObj.Funcs
         public int CoinCount { get; set; }
         public uint CurrencyId { get; set; }
         
-        public override void Use(Unit caster, Doodad owner, uint skillId)
+        public override void Use(Unit caster, Doodad owner, uint skillId, int nextPhase = 0)
         {
             if (!(caster is Character character))
                 return;
@@ -36,10 +36,22 @@ namespace AAEmu.Game.Models.Game.DoodadObj.Funcs
                 return;
             }
 
-            if (character.Inventory.Bag.AcquireDefaultItem(ItemTaskType.DoodadInteraction,ItemId,Count))
+            if (ItemManager.Instance.IsAutoEquipTradePack(ItemId))
             {
-                _log.Error(string.Format("DoodadFuncPurchase: Failed to create item {0} for player {1}",ItemId,character.Name));
-                return;
+                if (!character.Inventory.TryEquipNewBackPack(ItemTaskType.QuestSupplyItems, ItemId, Count))
+                {
+                    _log.Error(string.Format("DoodadFuncPurchase: Failed to auto-equip backpack item {0} for player {1}", ItemId, character.Name));
+                    character.SendErrorMessage(Error.ErrorMessageType.BackpackOccupied);
+                    return;
+                }
+            }
+            else
+            {
+                if (!character.Inventory.Bag.AcquireDefaultItem(ItemTaskType.DoodadInteraction, ItemId, Count))
+                {
+                    _log.Error(string.Format("DoodadFuncPurchase: Failed to create item {0} for player {1}", ItemId, character.Name));
+                    return;
+                }
             }
 
         }
