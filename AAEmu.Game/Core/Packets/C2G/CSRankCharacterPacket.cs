@@ -11,6 +11,10 @@ namespace AAEmu.Game.Core.Packets.C2G
 
         public override void Read(PacketStream stream)
         {
+        }
+
+        public override void Execute()
+        {
             // Empty struct
             _log.Debug("RankCharacter");
         }

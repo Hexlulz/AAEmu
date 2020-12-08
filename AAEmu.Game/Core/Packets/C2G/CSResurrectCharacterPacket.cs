@@ -6,17 +6,22 @@ namespace AAEmu.Game.Core.Packets.C2G
 {
     public class CSResurrectCharacterPacket : GamePacket
     {
+        private bool _inPlace;
         public CSResurrectCharacterPacket() : base(0x04e, 1)
         {
         }
 
         public override void Read(PacketStream stream)
         {
-            var inPlace = stream.ReadBoolean();
+            _inPlace = stream.ReadBoolean();
+        }
 
-            _log.Debug("ResurrectCharacter, InPlace: {0}", inPlace);
+        public override void Execute()
+        {
+            
+            _log.Debug("ResurrectCharacter, InPlace: {0}", _inPlace);
 
-            if (inPlace)
+            if (_inPlace)
             {
                 Connection.ActiveChar.Hp = (int)(Connection.ActiveChar.MaxHp * (Connection.ActiveChar.ResurrectHpPercent / 100.0f));
                 Connection.ActiveChar.Mp = (int)(Connection.ActiveChar.MaxMp * (Connection.ActiveChar.ResurrectMpPercent / 100.0f));

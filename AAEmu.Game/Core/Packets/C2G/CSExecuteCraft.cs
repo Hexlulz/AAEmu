@@ -8,21 +8,28 @@ namespace AAEmu.Game.Core.Packets.C2G
 {
     public class CSExecuteCraft : GamePacket
     {
+        private uint _craftId;
+        private uint _objId;
+        private int _count;
         public CSExecuteCraft() : base(0x0f8, 1)
         {
         }
 
         public override void Read(PacketStream stream)
         {
-            var craftId = stream.ReadUInt32();
-            var objId = stream.ReadBc();
-            var count = stream.ReadInt32();
+            _craftId = stream.ReadUInt32();
+            _objId = stream.ReadBc();
+            _count = stream.ReadInt32();
+        }
 
-            _log.Debug("CSExecuteCraft, craftId : {0} , objId : {1}, count : {2}", craftId, objId, count);
+        public override void Execute()
+        {
+            
+            _log.Debug("CSExecuteCraft, craftId : {0} , objId : {1}, count : {2}", _craftId, _objId, _count);
         
-            var craft = CraftManager.Instance.GetCraftById(craftId);
+            var craft = CraftManager.Instance.GetCraftById(_craftId);
             var character = Connection.ActiveChar;
-            character.Craft.Craft(craft, count, objId);
+            character.Craft.Craft(craft, _count, _objId);
         }
     }
 }

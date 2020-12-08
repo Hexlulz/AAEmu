@@ -8,27 +8,33 @@ namespace AAEmu.Game.Core.Packets.C2G
 {
     public class CSSetPingPosPacket : GamePacket
     {
+        private uint _teamId;
+        private bool _hasPing;
+        private Point _position;
+        private uint _insId;
         public CSSetPingPosPacket() : base(0x087, 1)
         {
         }
 
         public override void Read(PacketStream stream)
         {
-            var teamId = stream.ReadUInt32();
-            var hasPing = stream.ReadBoolean();
-            var position = new Point(stream.ReadSingle(), stream.ReadSingle(), stream.ReadSingle());
-            var insId = stream.ReadUInt32();
-            
-            // _log.Warn("SetPingPos, teamId {0}, hasPing {1}, insId {2}", teamId, hasPing, insId);
+            _teamId = stream.ReadUInt32();
+            _hasPing = stream.ReadBoolean();
+            _position = new Point(stream.ReadSingle(), stream.ReadSingle(), stream.ReadSingle());
+            _insId = stream.ReadUInt32();
+        }
+
+        public override void Execute()
+        {
             var owner = Connection.ActiveChar;
-            owner.LocalPingPosition = position;
-            if (teamId > 0)
+            owner.LocalPingPosition = _position;
+            if (_teamId > 0)
             {
-                TeamManager.Instance.SetPingPos(owner, teamId, hasPing, position, insId);
+                TeamManager.Instance.SetPingPos(owner, _teamId, _hasPing, _position, _insId);
             }
             else
             {
-                owner.SendPacket(new SCTeamPingPosPacket(hasPing, position, insId));
+                owner.SendPacket(new SCTeamPingPosPacket(_hasPing, _position, _insId));
             }
         }
     }

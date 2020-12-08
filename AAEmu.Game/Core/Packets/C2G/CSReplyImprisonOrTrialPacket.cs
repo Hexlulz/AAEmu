@@ -5,15 +5,19 @@ namespace AAEmu.Game.Core.Packets.C2G
 {
     public class CSReplyImprisonOrTrialPacket : GamePacket
     {
+        private bool _trial;
         public CSReplyImprisonOrTrialPacket() : base(0x06f, 1)
         {
         }
 
         public override void Read(PacketStream stream)
         {
-            var trial = stream.ReadBoolean();
+            _trial = stream.ReadBoolean();
+        }
 
-            _log.Warn("ReplyImprisonOrTrial, Trial: {0}", trial);
+        public override void Execute()
+        {
+            _log.Warn("ReplyImprisonOrTrial, Trial: {0}", _trial);
         }
     }
 }

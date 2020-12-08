@@ -11,19 +11,24 @@ namespace AAEmu.Game.Core.Packets.C2G
 {
     public class CSConvertItemLookPacket : GamePacket
     {
+        private ulong _baseId;
+        private ulong _lookId;
         public CSConvertItemLookPacket() : base(0x049, 1)
         {
         }
 
         public override void Read(PacketStream stream)
         {
-            var baseId = stream.ReadUInt64();
-            var lookId = stream.ReadUInt64();
+            _baseId = stream.ReadUInt64();
+            _lookId = stream.ReadUInt64();
+        }
 
+        public override void Execute()
+        {
             var character = Connection.ActiveChar;
 
-            Item toImage = character.Inventory.GetItemById(baseId);
-            Item imageItem = character.Inventory.GetItemById(lookId);
+            Item toImage = character.Inventory.GetItemById(_baseId);
+            Item imageItem = character.Inventory.GetItemById(_lookId);
 
             if (toImage == null || imageItem == null) return;
 

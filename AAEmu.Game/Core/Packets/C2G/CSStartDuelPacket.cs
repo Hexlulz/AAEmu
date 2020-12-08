@@ -12,24 +12,27 @@ namespace AAEmu.Game.Core.Packets.C2G
 {
     public class CSStartDuelPacket : GamePacket
     {
+        private uint _challengerId;
+        private short _errorMessage;
         public CSStartDuelPacket() : base(0x051, 1)
         {
         }
 
         public override void Read(PacketStream stream)
         {
-            var challengerId = stream.ReadUInt32();  // ID of the one who challenged us to a duel
-            var errorMessage = stream.ReadInt16();  // 0 - accepted the duel, 507 - refused
+            _challengerId = stream.ReadUInt32();  // ID of the one who challenged us to a duel
+            _errorMessage = stream.ReadInt16();  // 0 - accepted the duel, 507 - refused
+        }
 
-            _log.Warn("StartDuel, Id: {0}, ErrorMessage: {1}", challengerId, errorMessage);
+        public override void Execute()
+        {
+            _log.Warn("StartDuel, Id: {0}, ErrorMessage: {1}", _challengerId, _errorMessage);
 
-            if (errorMessage != 0)
-            {
+            if (_errorMessage != 0)
                 return;
-            }
 
             var challengedObjId = Connection.ActiveChar.ObjId;
-            var challenger = WorldManager.Instance.GetCharacterById(challengerId);
+            var challenger = WorldManager.Instance.GetCharacterById(_challengerId);
             var challengerObjId = challenger.ObjId;
 
             Connection.ActiveChar.BroadcastPacket(new SCDuelStartedPacket(challengerObjId, challengedObjId), true);

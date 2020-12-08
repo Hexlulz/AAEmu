@@ -8,16 +8,19 @@ namespace AAEmu.Game.Core.Packets.C2G
 {
     public class CSRollDicePacket : GamePacket
     {
+        private uint _max;
         public CSRollDicePacket() : base(0x0bd, 1)
         {
         }
 
         public override void Read(PacketStream stream)
         {
+            _max = stream.ReadUInt32();
+        }
 
-            var max = stream.ReadUInt32();            
-            CharacterManager.Instance.PlayerRoll(Connection.ActiveChar, int.Parse(max.ToString()));          
-           
+        public override void Execute()
+        {
+            CharacterManager.Instance.PlayerRoll(Connection.ActiveChar, int.Parse(_max.ToString())); 
         }
     }
 }

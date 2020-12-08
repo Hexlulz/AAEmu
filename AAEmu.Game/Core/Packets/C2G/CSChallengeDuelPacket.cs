@@ -8,19 +8,22 @@ namespace AAEmu.Game.Core.Packets.C2G
 {
     public class CSChallengeDuelPacket : GamePacket
     {
+        private uint _challengedId;
+        private uint _challengerId;
         public CSChallengeDuelPacket() : base(0x050, 1)
         {
         }
 
         public override void Read(PacketStream stream)
         {
-            var challengedId = stream.ReadUInt32(); // Id the one we challenged to a duel
+            _challengedId = stream.ReadUInt32(); // Id the one we challenged to a duel
+            _challengerId = Connection.ActiveChar.Id;
+        }
 
-            var challengerId = Connection.ActiveChar.Id;
-
-            Connection.ActiveChar.BroadcastPacket(new SCDuelChallengedPacket(challengerId), false); // only to the enemy
-
-            _log.Warn("ChallengeDuel, challengedId: {0}", challengedId);
+        public override void Execute()
+        {
+            Connection.ActiveChar.BroadcastPacket(new SCDuelChallengedPacket(_challengerId), false); // only to the enemy
+            _log.Warn("ChallengeDuel, challengedId: {0}", _challengedId);
         }
     }
 }
