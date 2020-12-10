@@ -52,7 +52,7 @@ namespace AAEmu.Game.Models.Game.Char
                 Name = LocalizationManager.Instance.Get("npcs","name",npctemplate.Id,npctemplate.Name), // npctemplate.Name,
                 Owner = Owner.Id,
                 Mileage = 0,
-                Xp = ExpirienceManager.Instance.GetExpForLevel(50, true),
+                Xp = ExpirienceManager.Instance.GetExpForLevel(npctemplate.Level, true),
                 Hp = 9999,
                 Mp = 9999,
                 UpdatedAt = DateTime.Now,
@@ -102,6 +102,7 @@ namespace AAEmu.Game.Models.Game.Char
                 Exp = mateDbInfo.Xp,
                 Mileage = mateDbInfo.Mileage,
                 SpawnDelayTime = 0, // TODO
+                DbInfo = mateDbInfo
             };
             
             foreach (var skill in MateManager.Instance.GetMateSkills(npcId))

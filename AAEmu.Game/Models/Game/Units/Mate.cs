@@ -35,6 +35,7 @@ namespace AAEmu.Game.Models.Game.Units
         public int Mileage { get; set; }
         public uint SpawnDelayTime { get; set; }
         public List<uint> Skills { get; set; }
+        public MateDb DbInfo { get; set; }
 
         #region Attributes
 
@@ -421,6 +422,9 @@ namespace AAEmu.Game.Models.Game.Units
                 BroadcastPacket(new SCLevelChangedPacket(ObjId, Level), true);
                 StartRegen();
             }
+
+            DbInfo.Xp = Exp;
+            DbInfo.Level = Level;
         }
 
         public override void AddVisibleObject(Character character)
